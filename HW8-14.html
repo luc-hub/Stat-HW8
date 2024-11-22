@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caesar Cipher Decryption</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            margin-bottom: 50px;
+            font-family: 'Arial', sans-serif;
+            background-color: #eef2f7;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: #ffffff;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .container:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #34495e;
+            padding-bottom: 5px;
+            color: #2c3e50;
+        }
+
+        h3 {
+            font-size: 1.6rem;
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        input[type="file"] {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            font-size: 1rem;
+            background: #f8f9fa;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="file"]:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.6);
+            outline: none;
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            text-align: justify;
+            margin: 20px 0;
+            color: #2c3e50;
+        }
+
+        /* Contenitore per i bottoni */
+        .button-container {
+            display: flex;
+            justify-content: center; /* Allinea i bottoni al centro */
+            gap: 20px; /* Distanza tra i bottoni */
+            margin-top: 20px; /* Spazio sopra i bottoni */
+        }
+
+        button {
+            display: block;
+            padding: 12px 18px;
+            font-size: 1.1rem;
+            color: #fff;
+            background-color: #3498db;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            flex-grow: 1; /* Fa crescere i bottoni in modo che occupino lo stesso spazio */
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .highlight {
+            background: #fef8e7;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-left: 5px solid #f39c12;
+            font-size: 1.1rem;
+            color: #34495e;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #34495e;
+            color: #ffffff;
+            font-size: 1rem;
+        }
+
+        tr:nth-child(even) {
+            background: #f4f6f9;
+        }
+
+        /* Styling for sections */
+        .section-box {
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .section-description {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .section-content {
+            font-size: 1rem;
+            margin-top: 10px;
+            color: #34495e;
+            padding: 10px;
+            background: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .footer {
+            margin-top: 20px; /* Aggiunge uno spazio sopra il footer */
+            padding: 20px 0; /* Padding per aggiungere spazio all'interno del footer */
+            text-align: center; /* Centra il testo */
+
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        label {
+            font-size: 1.2rem;
+            color: #2c3e50;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Decryption of Caesar Cipher using Letter and Bigram Frequency</h1>
+    <!-- Input file per selezionare il testo -->
+    <input type="file" id="fileInput" accept=".txt">
+    
+    <!-- Container per i risultati -->
+    <div id="output"></div>
+
+    <script>
+        // Distribuzioni delle lettere
+        const languageDistributions = {
+            english: { a: 8.17, b: 1.49, c: 2.78, d: 4.25, e: 12.70, f: 2.23, g: 2.02, h: 6.09, i: 6.97, j: 0.15, k: 0.77, l: 4.03, m: 2.41, n: 6.75, o: 7.51, p: 1.93, q: 0.10, r: 5.99, s: 6.33, t: 9.06, u: 2.76, v: 0.98, w: 2.36, x: 0.15, y: 1.97, z: 0.07 },
+            italian: { a: 11.74, b: 0.92, c: 4.50, d: 3.73, e: 11.79, f: 1.15, g: 1.64, h: 0.64, i: 10.14, j: 0.01, k: 0.00, l: 6.51, m: 2.51, n: 6.88, o: 9.83, p: 3.05, q: 0.51, r: 6.37, s: 4.98, t: 5.62, u: 3.01, v: 2.10, w: 0.00, x: 0.00, y: 0.00, z: 1.48 },
+            french: { a: 7.64, b: 0.93, c: 3.26, d: 3.67, e: 14.72, f: 1.06, g: 0.87, h: 0.74, i: 7.53, j: 0.61, k: 0.05, l: 5.45, m: 2.97, n: 7.10, o: 5.79, p: 2.52, q: 1.36, r: 6.69, s: 7.95, t: 7.24, u: 6.31, v: 1.83, w: 0.04, x: 0.42, y: 0.19, z: 0.21 },
+            spanish: { a: 11.52, b: 2.22, c: 4.02, d: 5.01, e: 12.18, f: 0.69, g: 1.77, h: 0.70, i: 6.25, j: 0.44, k: 0.02, l: 4.97, m: 3.15, n: 6.71, o: 8.68, p: 2.51, q: 0.88, r: 6.87, s: 7.98, t: 4.63, u: 3.93, v: 1.14, w: 0.02, x: 0.22, y: 0.90, z: 0.52 },
+        };
+
+        // Distribuzioni dei bigrammi
+        const bigramDistributions = {
+            italian: { "qu": 1.5, "il": 2.0, "la": 2.3, "ta": 1.0, "le": 1.7 }, 
+            french: { "le": 2.5, "qu": 1.8, "la": 1.9, "de": 2.3, "es": 1.6 },
+            english: { "th": 2.7, "he": 2.1, "in": 2.4, "er": 1.8, "on": 1.3 },
+            spanish: { "de": 2.4, "la": 2.2, "en": 1.9, "el": 1.8, "es": 1.5 },
+        };
+
+        // Funzione per cifrare con Cesare
+        function caesarEncrypt(text, shift) {
+            return text.split('').map(char => {
+                if (char.match(/[a-zA-Z]/)) {
+                    const base = char.charCodeAt(0) >= 97 ? 97 : 65;
+                    return String.fromCharCode(((char.charCodeAt(0) - base + shift) % 26) + base);
+                }
+                return char;
+            }).join('');
+        }
+
+        // Funzione per decifrare con Cesare
+        function caesarDecrypt(text, shift) {
+            return caesarEncrypt(text, 26 - shift);
+        }
+
+        // Calcola la distribuzione delle lettere in un testo
+        function calculateDistribution(text) {
+            const freq = {};
+            const totalLetters = text.split('').reduce((count, char) => {
+                if (char.match(/[a-zA-Z]/)) {
+                    const letter = char.toLowerCase();
+                    freq[letter] = (freq[letter] || 0) + 1;
+                    return count + 1;
+                }
+                return count;
+            }, 0);
+
+            Object.keys(freq).forEach(letter => {
+                freq[letter] = (freq[letter] / totalLetters) * 100;
+            });
+
+            return freq;
+        }
+
+        // Calcola la distribuzione dei bigrammi in un testo
+        function calculateBigramFrequency(text) {
+            const bigramFreq = {};
+            const totalBigrams = text.length - 1;
+
+            for (let i = 0; i < text.length - 1; i++) {
+                const bigram = text.slice(i, i + 2).toLowerCase();
+                if (bigram.match(/^[a-z]{2}$/)) {
+                    bigramFreq[bigram] = (bigramFreq[bigram] || 0) + 1;
+                }
+            }
+
+            Object.keys(bigramFreq).forEach(bigram => {
+                bigramFreq[bigram] = (bigramFreq[bigram] / totalBigrams) * 100;
+            });
+
+            return bigramFreq;
+        }
+
+        // Confronta due distribuzioni usando la somma delle differenze assolute
+        function compareDistributions(dist1, dist2) {
+            const letters = Object.keys(dist2);
+            return letters.reduce((sum, letter) => {
+                const observed = dist1[letter] || 0;
+                const expected = dist2[letter];
+                return sum + Math.abs(observed - expected);
+            }, 0);
+        }
+
+        // Confronta due distribuzioni di bigrammi
+        function compareBigramDistributions(bigram1, bigram2) {
+            const allBigrams = new Set([...Object.keys(bigram1), ...Object.keys(bigram2)]);
+            return [...allBigrams].reduce((sum, bigram) => {
+                const observed = bigram1[bigram] || 0;
+                const expected = bigram2[bigram] || 0;
+                return sum + Math.abs(observed - expected);
+            }, 0);
+        }
+
+        // Decifra il testo cercando la lingua e lo shift corretto
+        function decryptWithLanguageDetection(encryptedText) {
+            let bestMatch = { language: null, shift: null, score: Infinity };
+
+            for (const [language, distribution] of Object.entries(languageDistributions)) {
+                for (let shift = 0; shift < 26; shift++) {
+                    const decryptedText = caesarDecrypt(encryptedText, shift);
+
+                    // Confronto con le frequenze delle lettere
+                    const decryptedLetterDistribution = calculateDistribution(decryptedText);
+                    const letterScore = compareDistributions(decryptedLetterDistribution, distribution);
+
+                    // Confronto con le frequenze dei bigrammi
+                    const decryptedBigramDistribution = calculateBigramFrequency(decryptedText);
+                    const bigramScore = compareBigramDistributions(decryptedBigramDistribution, bigramDistributions[language] || {});
+
+                    // Somma dei punteggi
+                    const totalScore = letterScore + bigramScore;
+
+                    if (totalScore < bestMatch.score) {
+                        bestMatch = { language, shift, score: totalScore };
+                    }
+                }
+            }
+
+            return bestMatch;
+        }
+
+        // Lettura del file caricato dall'utente
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                alert('Please select a file!');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const originalText = event.target.result;
+
+                // Genera uno shift casuale e cifra il testo
+                const randomShift = Math.floor(Math.random() * 26);
+                const encryptedText = caesarEncrypt(originalText, randomShift);
+
+                // Decifra il testo
+                const { language, shift } = decryptWithLanguageDetection(encryptedText);
+                const decryptedText = caesarDecrypt(encryptedText, shift);
+
+                // Mostra il risultato
+                document.getElementById('output').innerHTML = `
+                    <div class="section-box">
+                        <div class="section-title">Original Text</div>
+                        <div class="section-description">The original text provided for encryption and decryption.</div>
+                        <div class="section-content">${originalText}</div>
+                    </div>
+                    <div class="section-box">
+                        <div class="section-title">Random Shift</div>
+                        <div class="section-description">The shift used for encrypting the text randomly.</div>
+                        <div class="section-content">${randomShift}</div>
+                    </div>
+                    <div class="section-box">
+                        <div class="section-title">Encrypted Text</div>
+                        <div class="section-description">The text after applying the Caesar Cipher encryption with a random shift.</div>
+                        <div class="section-content">${encryptedText}</div>
+                    </div>
+                    <div class="section-box">
+                        <div class="section-title">Detected Language</div>
+                        <div class="section-description">The language detected during the decryption process.</div>
+                        <div class="section-content">${language}</div>
+                    </div>
+                    <div class="section-box">
+                        <div class="section-title">Shift Used</div>
+                        <div class="section-description">The shift value used to decrypt the text correctly.</div>
+                        <div class="section-content">${shift}</div>
+                    </div>
+                    <div class="section-box">
+                        <div class="section-title">Decrypted Text</div>
+                        <div class="section-description">The decrypted text after reversing the Caesar Cipher encryption.</div>
+                        <div class="section-content">${decryptedText}</div>
+                    </div>
+                `;
+            };
+            reader.readAsText(file);
+        });
+    </script>
+    <!-- ---------------------------------------------------------------------------------- -->
+    <br> <br> <br> <br> <br> <br> <br> <br>
+    <h1>RSA Encryption and Decryption Demonstration</h1>
+    
+    <label for="p">Prime number p:</label>
+    <input type="number" id="p" value="43">
+    <br>
+    
+    <label for="q">Prime number q:</label>
+    <input type="number" id="q" value="47">
+    <br>
+    
+    <label for="m">Plain message (M):</label>
+    <input type="number" id="m" value="123">
+    <br>
+    
+    <!-- Container for buttons -->
+    <div class="button-container">
+        <button onclick="generateKeys()">Generate Keys</button>
+        <button onclick="encrypt()" id="encryptBtn" disabled>Encrypt</button>
+        <button onclick="decrypt()" id="decryptBtn" disabled>Decrypt</button>
+        <button onclick="reset()">Reset Experiment</button>
+    </div>
+        
+    <h3>Results:</h3>
+    <p>Public Key (e, n): <span id="pub"></span></p>
+    <p>Private Key (d, n): <span id="priv"></span></p>
+    <p>Encrypted Message (C): <span id="encrypted"></span></p>
+    <p>Decrypted Message: <span id="decrypted"></span></p>
+    
+    <h3>Explanations:</h3>
+    <ul id="explanation"></ul>
+    
+    <h3>Theoretical Description:</h3>
+    <ul id="theoreticalDescription"></ul>
+    
+    <script>
+        let e, d, n, phi_n;
+        let isEncrypted = false; // Flag to check if the message is encrypted
+
+        function generateKeys() {
+            const p = parseInt(document.getElementById('p').value);
+            const q = parseInt(document.getElementById('q').value);
+            n = p * q; // n = p * q
+            phi_n = (p - 1) * (q - 1); // φ(n) = (p-1) * (q-1)
+
+            // Find an exponent e that is coprime with φ(n)
+            e = findE(phi_n);
+            // Calculate the private exponent d, which is the inverse of e modulo φ(n)
+            d = calculateInverse(e, phi_n);
+
+            // Display the keys
+            document.getElementById('pub').textContent = `(${e}, ${n})`;
+            document.getElementById('priv').textContent = `(${d}, ${n})`;
+
+            // Show the mathematical explanation
+            document.getElementById('explanation').innerHTML = `
+                <li>Calculate n = p * q = ${p} * ${q} = ${n}.</li>
+                <li>Calculate φ(n) = (p - 1) * (q - 1) = (${p} - 1) * (${q} - 1) = ${phi_n}.</li>
+                <li>Choose e such that gcd(e, φ(n)) = 1. For example, e = ${e}.</li>
+                <li>Calculate d, which is the inverse of e modulo φ(n). For example, d = ${d}.</li>
+                <li>The public key is (e, n) = (${e}, ${n}) and the private key is (d, n) = (${d}, ${n}).</li>
+            `;
+            
+            // Theoretical description for key generation
+            document.getElementById('theoreticalDescription').innerHTML = `
+                <li><strong>Choosing the prime numbers:</strong> In RSA, we start by choosing two prime numbers p and q. The security of RSA depends on the difficulty of factoring large numbers.</li>
+                <li><strong>Calculating n:</strong> The modulus n is the product of p and q, i.e., n = p * q. This value is used for both encryption and decryption.</li>
+                <li><strong>Calculating φ(n):</strong> φ(n) is the Euler's totient function of n, given by φ(n) = (p-1) * (q-1). This function is important for determining the private exponent d.</li>
+                <li><strong>Choosing the public exponent e:</strong> The public exponent e must be an integer that is coprime with φ(n), i.e., their greatest common divisor must be 1.</li>
+                <li><strong>Calculating the private exponent d:</strong> The private exponent d is the inverse of e modulo φ(n), i.e., e * d ≡ 1 (mod φ(n)).</li>
+                <li><strong>Public and private keys:</strong> The public key consists of (e, n), while the private key is (d, n).</li>
+            `;
+            
+            // Enable the "Encrypt" button after generating the keys
+            document.getElementById('encryptBtn').disabled = false;
+            document.getElementById('decryptBtn').disabled = true; // Disable "Decrypt" before encryption
+        }
+        
+        function findE(phi_n) {
+            let e = 2;
+            while (e < phi_n) {
+                if (gcd(e, phi_n) === 1) {
+                    return e;
+                }
+                e++;
+            }
+            return e;
+        }
+        
+        function calculateInverse(a, m) {
+            let m0 = m, x0 = 0, x1 = 1;
+            if (m === 1) return 0;
+            while (a > 1) {
+                const q = Math.floor(a / m);
+                let t = m;
+                m = a % m;
+                a = t;
+                t = x0;
+                x0 = x1 - q * x0;
+                x1 = t;
+            }
+            if (x1 < 0) x1 += m0;
+            return x1;
+        }
+
+        function gcd(a, b) {
+            if (b === 0) return a;
+            return gcd(b, a % b);
+        }
+
+        function encrypt() {
+            const m = parseInt(document.getElementById('m').value);
+            if (m >= n) {
+                alert("The message M must be smaller than n!");
+                return;
+            }
+
+            const c = modExp(m, e, n); // C = M^e % n
+            document.getElementById('encrypted').textContent = c;
+            isEncrypted = true; // Message has been encrypted
+
+            // Show the mathematical explanation
+            document.getElementById('explanation').innerHTML = `
+                <li>Encrypting the message M = ${m}: </li>
+                <li>Calculate C = M^e % n = ${m}^${e} % ${n} = ${c}.</li>
+                <li>The encrypted message C is: ${c}.</li>
+            `;
+            
+            // Theoretical description of encryption
+            document.getElementById('theoreticalDescription').innerHTML = `
+                <li><strong>Encryption:</strong> To encrypt a message M, we use the public key (e, n) and calculate C = M^e % n.</li>
+                <li>This process is modular exponentiation, which makes it difficult to reverse the encryption without knowing the private key.</li>
+                <li>The security of RSA comes from the difficulty of calculating the e-th root of a number modulo n, as the value of d (the private key) is not known.</li>
+            `;
+
+            // Enable the "Decrypt" button after encryption
+            if (isEncrypted) {
+                document.getElementById('decryptBtn').disabled = false;
+            }
+        }
+        
+        function decrypt() {
+            const c = parseInt(document.getElementById('encrypted').textContent);
+            const mDecrypted = modExp(c, d, n); // M = C^d % n
+            document.getElementById('decrypted').textContent = mDecrypted;
+
+            // Show the mathematical explanation
+            document.getElementById('explanation').innerHTML += `
+                <li>Decrypting the message C = ${c}: </li>
+                <li>Calculate M = C^d % n = ${c}^${d} % ${n} = ${mDecrypted}.</li>
+                <li>The decrypted message is: ${mDecrypted}.</li>
+            `;
+            
+            // Theoretical description of decryption
+            document.getElementById('theoreticalDescription').innerHTML += `
+                <li><strong>Decryption:</strong> To decrypt a message C, we use the private key (d, n) and calculate M = C^d % n.</li>
+                <li>The decryption process is similar to encryption, but uses the private exponent d, which is the inverse of e modulo φ(n).</li>
+                <li>Thanks to this property, only someone who knows d can correctly decrypt the message.</li>
+            `;
+        }
+
+        // Function for modular exponentiation
+        function modExp(base, exp, mod) {
+            let result = 1;
+            base = base % mod;
+            while (exp > 0) {
+                if (exp % 2 === 1) {
+                    result = (result * base) % mod;
+                }
+                exp = Math.floor(exp / 2);
+                base = (base * base) % mod;
+            }
+            return result;
+        }
+
+        function reset() {
+            document.getElementById('p').value = "43";
+            document.getElementById('q').value = "47";
+            document.getElementById('m').value = "123";
+            document.getElementById('pub').textContent = "";
+            document.getElementById('priv').textContent = "";
+            document.getElementById('encrypted').textContent = "";
+            document.getElementById('decrypted').textContent = "";
+            document.getElementById('explanation').innerHTML = "";
+            document.getElementById('theoreticalDescription').innerHTML = "";
+            isEncrypted = false;
+
+            // Disable the "Encrypt" and "Decrypt" buttons
+            document.getElementById('encryptBtn').disabled = true;
+            document.getElementById('decryptBtn').disabled = true;
+        }
+    </script>
+
+    <div class="footer">
+        <p> . </p>
+</body>
+</html>
